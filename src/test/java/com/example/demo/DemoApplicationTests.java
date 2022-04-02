@@ -11,8 +11,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.*;
 
+@SuppressWarnings("ALL")
 @SpringBootTest
-//@MapperScan("com.example.demo.mapper")
+@MapperScan("com.example.demo.mapper")
 class DemoApplicationTests {
 
 	@Autowired
@@ -35,7 +36,7 @@ class DemoApplicationTests {
 	public void testAddUser() {
 		User user = new User();
 
-		user.setName("wangwu");
+		user.setName("helw");
 		user.setAge(31);
 		user.setEmail("djshdjhadh@qq.com");
 
@@ -52,7 +53,7 @@ class DemoApplicationTests {
 	@Test
 	public void testUpdateuser(){
 		User user = new User();
-		user.setId(9);
+		user.setId(10);
 		user.setAge(9);
 
 		int i = userMapper.updateById(user);
@@ -68,24 +69,13 @@ class DemoApplicationTests {
 	@Test
 	public void testInsertUser(){
 		User user = new User();
-		user.setId(9);
 		user.setAge(3);
-		user.setName("hdad");
+		user.setName("ceshi");
 		int result = userMapper.updateById(user);
 		System.out.println(result);
 	}
 
-	@Test
-	public void testOptimisticLocker() {
-		//查询
-		User user = new User();
-		//修改数据
-		user.setId(1);
-		user.setName("Helen Yao");
-		user.setEmail("helen@qq.com");
-		//执行更新
-		userMapper.updateById(user);
-	}
+
 
 	// 根据id查询用户
 	@Test
@@ -101,12 +91,25 @@ class DemoApplicationTests {
 		System.out.println(users);
 
 	}
+    // 测试乐观锁
+	@Test
+	public void testOptimisticLocker() {
+		//查询
+		User user = userMapper.selectById(10);
+		//User user = new User();  这种方式不行
+		user.setId(10);
+		//修改数据
+		user.setName("Helen Yao1");
+		user.setEmail("helen@qq.com");
+		//执行更新
+		userMapper.updateById(user);
+	}
 	
 	// 测试分页
 	@Test
 	public void pageTest(){
 		Page<User> page = new Page<>(1,5);
-
+		userMapper.selectPage(page, null);
 		page.getRecords().forEach(System.out::println);
 		System.out.println(page.getCurrent());
 		System.out.println(page.getPages());
@@ -114,7 +117,50 @@ class DemoApplicationTests {
 		System.out.println(page.getTotal());
 		System.out.println(page.hasNext());
 		System.out.println(page.hasPrevious());
+	}
 
+	/**
+	 * 第二种测试方式用map存数据
+	 */
+	@Test
+	public void pageTest2(){
+		Page<User> page = new Page<>(1,5);
+		IPage<Map<String, Object>> mapIPage = userMapper.selectMapsPage(page, null);
+		for (Map<String, Object> record : mapIPage.getRecords()) {
+			System.out.println(record);
+		}
+	}
 
+	/**
+	 * 测试逻辑删除，这个逻辑删除的delete值必须是0
+	 */
+	@Test
+	public void testLogicDelete() {
+		int result = userMapper.deleteById(9);
+		System.out.println(result);
+	}
+
+/**
+ * 测试 逻辑删除后的查询：
+ * 不包括被逻辑删除的记录
+ */
+
+	@Test
+	public void testLogicDeleteSelect() {
+		User user = new User();
+		List<User> users = userMapper.selectList(null);
+		users.forEach(System.out::println);
+	}
+
+	/**
+	 * 测试 性能分析插件
+	 */
+	@Test
+	public void testPerformance() {
+		User user = new User();
+		user.setName("我是Helen");
+		user.setEmail("helen@sina.com");
+		user.setAge(18);
+		userMapper.insert(user);
 	}
 }
